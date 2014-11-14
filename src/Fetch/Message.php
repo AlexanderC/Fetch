@@ -459,6 +459,20 @@ class Message
             $attachment          = new Attachment($this, $structure, $partIdentifier);
             $this->attachments[] = $attachment;
         } elseif ($structure->type == 0 || $structure->type == 1) {
+            if (isset($structure->parts)) { // multipart: iterate through each part
+
+                foreach ($structure->parts as $partIndex => $part) {
+                    $partId = $partIndex + 1;
+
+                    if (isset($partIdentifier))
+                        $partId = $partIdentifier . '.' . $partId;
+
+                    $this->processStructure($part, $partId);
+                }
+
+                return;
+            }
+            
             $messageBody = isset($partIdentifier) ?
                 imap_fetchbody($this->imapStream, $this->uid, $partIdentifier, FT_UID)
                 : imap_body($this->imapStream, $this->uid, FT_UID);
